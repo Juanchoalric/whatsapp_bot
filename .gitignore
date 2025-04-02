@@ -1,0 +1,36 @@
+# Bytecode compilado de Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribución / empaquetado
+dist/
+build/
+*.egg-info/
+
+# Entornos virtuales
+venv/
+.venv/
+env/
+ENV/
+
+# IDE 
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Base de datos SQLite
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+*.log
+
+# Archivos de configuración local
+.env
+.env.local
+
+# Otros
+.DS_Store 
