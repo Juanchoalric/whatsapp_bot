@@ -19,8 +19,39 @@ class ProductService:
         return self.db.query(Product).filter(Product.id == product_id).first()
     
     def get_products_by_name(self, name: str) -> List[Product]:
-        """Buscar productos por nombre (búsqueda parcial)"""
-        return self.db.query(Product).filter(Product.name.ilike(f"%{name}%")).all()
+        """Buscar productos por nombre (búsqueda parcial) con tolerancia a errores comunes"""
+        # Corregir errores comunes de escritura
+        search_name = name.lower()
+        corrections = {
+            "chuchillo": "cuchillo",
+            "cuchilo": "cuchillo",
+            "cuchiyos": "cuchillos",
+            "cuvhillo": "cuchillo",
+            "cucillo": "cuchillo",
+            "santoco": "santoku",
+            "zantoku": "santoku",
+            "santuko": "santoku"
+        }
+        
+        # Aplicar correcciones
+        for error, correction in corrections.items():
+            if error in search_name:
+                search_name = search_name.replace(error, correction)
+        
+        # Primero intentar una búsqueda exacta normalizada
+        products = self.db.query(Product).filter(Product.name.ilike(f"%{search_name}%")).all()
+        
+        # Si no encontramos nada, intentar búsquedas parciales con palabras clave
+        if not products and " " in search_name:
+            # Dividir en palabras clave y buscar cada una
+            keywords = [word for word in search_name.split() if len(word) > 3]
+            if keywords:
+                for keyword in keywords:
+                    products_by_keyword = self.db.query(Product).filter(Product.name.ilike(f"%{keyword}%")).all()
+                    if products_by_keyword:
+                        return products_by_keyword
+        
+        return products
     
     def get_product_details_as_text(self, product_id: int) -> str:
         """
@@ -64,10 +95,10 @@ class ProductService:
         if not products:
             return "No hay productos disponibles."
             
-        result = "📋 CATÁLOGO DE PRODUCTOS:\n\n"
+        result = "CATÁLOGO DE PRODUCTOS:\n\n"
         for product in products:
-            stock_status = "✅ En stock" if product.stock > 0 else "❌ Agotado"
-            result += f"• {product.name}\n  💲 ${product.price:.2f}\n  📦 {stock_status}\n\n"
+            stock_status = "En stock" if product.stock > 0 else "Agotado"
+            result += f"• {product.name}\n  Precio: ${product.price:.2f}\n  Estado: {stock_status}\n\n"
             
         return result
         
@@ -81,9 +112,18 @@ class ProductService:
             
         if len(products) == 1:
             product = products[0]
-            return f"{product.name}: ${product.price:.2f}. {product.description} - {product.stock} unidades en stock."
+            stock_status = f"{product.stock} unidades en stock" if product.stock > 0 else "Agotado"
+            return f"""{product.name}
+Precio: ${product.price:.2f}
+{product.description}
+Stock: {stock_status}"""
         else:
             result = f"Encontré {len(products)} productos que coinciden con '{name}':\n\n"
             for product in products:
-                result += f"- {product.name}: ${product.price:.2f} - {product.stock} unidades en stock\n"
+                stock_status = f"{product.stock} unidades en stock" if product.stock > 0 else "Agotado"
+                result += f"""{product.name}
+Precio: ${product.price:.2f}
+Stock: {stock_status}
+
+"""
             return result 

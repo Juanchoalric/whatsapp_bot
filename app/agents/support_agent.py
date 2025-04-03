@@ -32,7 +32,7 @@ class SupportAgent(KnifeStoreAgent):
         - Proporciona información precisa y específica
         - Si se trata de una queja, sé empático pero breve
         - Usa "vos" en lugar de "usted"
-        - Incluye máximo un emoji si es apropiado
+        - NO utilices emojis en tus respuestas
         
         Aquí hay ejemplos del estilo de comunicación, pero RECUERDA SER MÁS CONCISO que estos ejemplos:
         {CONVERSATION_EXAMPLES}
@@ -56,7 +56,7 @@ class SupportAgent(KnifeStoreAgent):
         - Proporciona información específica sobre tiempos y costos de envío
         - Ofrece máximo una alternativa si es pertinente
         - Usa "vos" en lugar de "usted"
-        - Incluye máximo un emoji si es apropiado
+        - NO utilices emojis en tus respuestas
         
         Aquí hay ejemplos del estilo de comunicación, pero RECUERDA SER MÁS CONCISO que estos ejemplos:
         {CONVERSATION_EXAMPLES}

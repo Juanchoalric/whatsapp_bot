@@ -3,13 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bot de Cuchillos - Prueba</title>
+    <title>Bot Multiplatforma - Prueba</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             max-width: 800px;
             margin: 0 auto;
             padding: 20px;
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border: 1px solid #ccc;
+            background-color: #f1f1f1;
+            flex-grow: 1;
+            text-align: center;
+            font-weight: bold;
+        }
+        .tab.active {
+            background-color: #fff;
+            border-bottom: none;
+        }
+        .tab-whatsapp.active {
+            background-color: #e6ffda;
+            color: #075E54;
+        }
+        .tab-instagram.active {
+            background-color: #fcddee;
+            color: #C13584;
         }
         .chat-container {
             border: 1px solid #ccc;
@@ -18,7 +43,12 @@
             height: 400px;
             overflow-y: auto;
             margin-bottom: 10px;
-            background-color: #f5f5f5;
+        }
+        .whatsapp-container {
+            background-color: #e6ffda;
+        }
+        .instagram-container {
+            background-color: #fcddee;
         }
         .message {
             margin-bottom: 10px;
@@ -27,25 +57,34 @@
             max-width: 70%;
             clear: both;
         }
-        .user-message {
+        .user-message-whatsapp {
             background-color: #dcf8c6;
             float: right;
         }
-        .bot-message {
+        .bot-message-whatsapp {
             background-color: #fff;
             float: left;
+        }
+        .user-message-instagram {
+            background-color: #efefef;
+            float: right;
+        }
+        .bot-message-instagram {
+            background-color: #fff;
+            float: left;
+            border: 1px solid #efefef;
         }
         .input-container {
             display: flex;
         }
-        #message-input {
+        #message-input-whatsapp, #message-input-instagram {
             flex-grow: 1;
             padding: 10px;
             border: 1px solid #ccc;
             border-radius: 4px;
             margin-right: 10px;
         }
-        button {
+        .btn-whatsapp {
             padding: 10px 20px;
             background-color: #128C7E;
             color: white;
@@ -53,53 +92,132 @@
             border-radius: 4px;
             cursor: pointer;
         }
-        button:hover {
+        .btn-whatsapp:hover {
             background-color: #075E54;
         }
+        .btn-instagram {
+            padding: 10px 20px;
+            background-color: #C13584;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .btn-instagram:hover {
+            background-color: #8f2762;
+        }
         h1 {
-            color: #128C7E;
+            color: #444;
+            text-align: center;
+        }
+        .platform-content {
+            display: none;
+        }
+        .platform-content.active {
+            display: block;
         }
     </style>
 </head>
 <body>
-    <h1>Bot de Cuchillos - Interfaz de Prueba</h1>
-    <div class="chat-container" id="chat-container"></div>
-    <div class="input-container">
-        <input type="text" id="message-input" placeholder="Escribe un mensaje...">
-        <button id="send-button">Enviar</button>
+    <h1>Bot Multiplataforma - Interfaz de Prueba</h1>
+    
+    <div class="tabs">
+        <div class="tab tab-whatsapp active" id="tab-whatsapp">WhatsApp</div>
+        <div class="tab tab-instagram" id="tab-instagram">Instagram</div>
+    </div>
+    
+    <div class="platform-content active" id="whatsapp-content">
+        <div class="chat-container whatsapp-container" id="whatsapp-chat-container"></div>
+        <div class="input-container">
+            <input type="text" id="message-input-whatsapp" placeholder="Escribe un mensaje en WhatsApp...">
+            <button id="send-button-whatsapp" class="btn-whatsapp">Enviar</button>
+        </div>
+    </div>
+    
+    <div class="platform-content" id="instagram-content">
+        <div class="chat-container instagram-container" id="instagram-chat-container"></div>
+        <div class="input-container">
+            <input type="text" id="message-input-instagram" placeholder="Escribe un mensaje en Instagram...">
+            <button id="send-button-instagram" class="btn-instagram">Enviar</button>
+        </div>
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const chatContainer = document.getElementById('chat-container');
-            const messageInput = document.getElementById('message-input');
-            const sendButton = document.getElementById('send-button');
+            // Elementos de WhatsApp
+            const whatsappChatContainer = document.getElementById('whatsapp-chat-container');
+            const whatsappMessageInput = document.getElementById('message-input-whatsapp');
+            const whatsappSendButton = document.getElementById('send-button-whatsapp');
             
-            // ID único para el usuario actual
-            const userId = 'test_user_' + Math.floor(Math.random() * 10000);
+            // Elementos de Instagram
+            const instagramChatContainer = document.getElementById('instagram-chat-container');
+            const instagramMessageInput = document.getElementById('message-input-instagram');
+            const instagramSendButton = document.getElementById('send-button-instagram');
             
-            // Función para añadir mensajes al chat
-            function addMessage(text, isUser) {
+            // Tabs
+            const whatsappTab = document.getElementById('tab-whatsapp');
+            const instagramTab = document.getElementById('tab-instagram');
+            const whatsappContent = document.getElementById('whatsapp-content');
+            const instagramContent = document.getElementById('instagram-content');
+            
+            // IDs únicos para cada plataforma
+            const whatsappUserId = 'whatsapp_user_' + Math.floor(Math.random() * 10000);
+            const instagramUserId = 'instagram_user_' + Math.floor(Math.random() * 10000);
+            
+            // Cambiar entre pestañas
+            whatsappTab.addEventListener('click', function() {
+                whatsappTab.classList.add('active');
+                instagramTab.classList.remove('active');
+                whatsappContent.classList.add('active');
+                instagramContent.classList.remove('active');
+            });
+            
+            instagramTab.addEventListener('click', function() {
+                instagramTab.classList.add('active');
+                whatsappTab.classList.remove('active');
+                instagramContent.classList.add('active');
+                whatsappContent.classList.remove('active');
+            });
+            
+            // Función para añadir mensajes al chat de WhatsApp
+            function addWhatsAppMessage(text, isUser) {
                 const messageDiv = document.createElement('div');
                 messageDiv.classList.add('message');
-                messageDiv.classList.add(isUser ? 'user-message' : 'bot-message');
+                messageDiv.classList.add(isUser ? 'user-message-whatsapp' : 'bot-message-whatsapp');
                 messageDiv.textContent = text;
-                chatContainer.appendChild(messageDiv);
+                whatsappChatContainer.appendChild(messageDiv);
                 
                 // Scroll al último mensaje
-                chatContainer.scrollTop = chatContainer.scrollHeight;
+                whatsappChatContainer.scrollTop = whatsappChatContainer.scrollHeight;
                 
                 // Limpiar el input si es un mensaje del usuario
                 if (isUser) {
-                    messageInput.value = '';
+                    whatsappMessageInput.value = '';
                 }
             }
             
-            // Función para enviar mensajes al servidor
-            async function sendMessage(text) {
+            // Función para añadir mensajes al chat de Instagram
+            function addInstagramMessage(text, isUser) {
+                const messageDiv = document.createElement('div');
+                messageDiv.classList.add('message');
+                messageDiv.classList.add(isUser ? 'user-message-instagram' : 'bot-message-instagram');
+                messageDiv.textContent = text;
+                instagramChatContainer.appendChild(messageDiv);
+                
+                // Scroll al último mensaje
+                instagramChatContainer.scrollTop = instagramChatContainer.scrollHeight;
+                
+                // Limpiar el input si es un mensaje del usuario
+                if (isUser) {
+                    instagramMessageInput.value = '';
+                }
+            }
+            
+            // Función para enviar mensajes al servidor de WhatsApp
+            async function sendWhatsAppMessage(text) {
                 if (!text.trim()) return;
                 
-                addMessage(text, true);
+                addWhatsAppMessage(text, true);
                 
                 try {
                     const response = await fetch('/test-message', {
@@ -110,7 +228,7 @@
                         body: JSON.stringify({
                             message: {
                                 text: text,
-                                from: userId
+                                from: whatsappUserId
                             }
                         })
                     });
@@ -120,31 +238,80 @@
                     if (data.message) {
                         // Añadir pequeña demora para simular tiempo de respuesta
                         setTimeout(() => {
-                            addMessage(data.message, false);
+                            addWhatsAppMessage(data.message, false);
                         }, 500);
                     } else {
-                        addMessage('Lo siento, hubo un error al procesar tu mensaje.', false);
+                        addWhatsAppMessage('Lo siento, hubo un error al procesar tu mensaje.', false);
                     }
                 } catch (error) {
                     console.error('Error:', error);
-                    addMessage('Error de conexión. Por favor, intenta de nuevo.', false);
+                    addWhatsAppMessage('Error de conexión. Por favor, intenta de nuevo.', false);
                 }
             }
             
-            // Event listeners
-            sendButton.addEventListener('click', () => {
-                sendMessage(messageInput.value);
+            // Función para enviar mensajes al servidor de Instagram
+            async function sendInstagramMessage(text) {
+                if (!text.trim()) return;
+                
+                addInstagramMessage(text, true);
+                
+                try {
+                    const response = await fetch('/test-instagram', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            message: {
+                                text: text,
+                                from: instagramUserId
+                            }
+                        })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.message) {
+                        // Añadir pequeña demora para simular tiempo de respuesta
+                        setTimeout(() => {
+                            addInstagramMessage(data.message, false);
+                        }, 500);
+                    } else {
+                        addInstagramMessage('Lo siento, hubo un error al procesar tu mensaje.', false);
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    addInstagramMessage('Error de conexión. Por favor, intenta de nuevo.', false);
+                }
+            }
+            
+            // Event listeners para WhatsApp
+            whatsappSendButton.addEventListener('click', () => {
+                sendWhatsAppMessage(whatsappMessageInput.value);
             });
             
-            messageInput.addEventListener('keypress', (event) => {
+            whatsappMessageInput.addEventListener('keypress', (event) => {
                 if (event.key === 'Enter') {
-                    sendMessage(messageInput.value);
+                    sendWhatsAppMessage(whatsappMessageInput.value);
                 }
             });
             
-            // Mensaje de bienvenida
-            addMessage('¡Hola! Soy el asistente virtual de la tienda de cuchillos. ¿En qué puedo ayudarte hoy?', false);
+            // Event listeners para Instagram
+            instagramSendButton.addEventListener('click', () => {
+                sendInstagramMessage(instagramMessageInput.value);
+            });
+            
+            instagramMessageInput.addEventListener('keypress', (event) => {
+                if (event.key === 'Enter') {
+                    sendInstagramMessage(instagramMessageInput.value);
+                }
+            });
+            
+            // Mensajes de bienvenida
+            addWhatsAppMessage('¡Hola! Soy el asistente virtual de WhatsApp para la tienda de cuchillos. ¿En qué puedo ayudarte hoy?', false);
+            addInstagramMessage('¡Hola! Soy el asistente virtual de Instagram para la tienda de cuchillos. ¿En qué puedo ayudarte hoy?', false);
         });
     </script>
 </body>
+</html> 
 </html> 

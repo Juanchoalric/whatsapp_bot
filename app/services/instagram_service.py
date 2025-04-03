@@ -6,9 +6,9 @@ from app.services.product_service import ProductService
 from app.services.conversation_service import ConversationService
 from app.database.database import SessionLocal
 
-class WhatsAppService:
+class InstagramService:
     """
-    Servicio para manejar la integración con WhatsApp Business API
+    Servicio para manejar la integración con Instagram Direct API
     (Actualmente mockeado)
     """
     
@@ -21,19 +21,24 @@ class WhatsAppService:
         self.product_service = ProductService(self.db)
         # Inicializar servicio de conversaciones
         self.conversation_service = ConversationService()
+        
+    def __del__(self):
+        """Cerrar la sesión de base de datos al destruir el objeto"""
+        if hasattr(self, 'db'):
+            self.db.close()
     
     async def process_incoming_message(self, message_data: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Procesa un mensaje entrante de WhatsApp y genera una respuesta
+        Procesa un mensaje entrante de Instagram y genera una respuesta
         
         Args:
             message_data: Datos del mensaje recibido
-            
+           
         Returns:
             Dict con la respuesta generada
         """
         try:
-            # Extraer el texto del mensaje (formato simulado de WhatsApp)
+            # Extraer el texto del mensaje (formato simulado de Instagram)
             message_text = message_data.get("message", {}).get("text", "")
             sender = message_data.get("message", {}).get("from", "unknown")
             
@@ -42,7 +47,8 @@ class WhatsAppService:
                 "sender": sender,
                 "text": message_text,
                 "timestamp": message_data.get("timestamp", ""),
-                "type": "received"
+                "type": "received",
+                "platform": "instagram"
             })
             
             # Agregar mensaje al historial de conversación
@@ -142,40 +148,32 @@ class WhatsAppService:
                 "sender": "bot",
                 "text": response_text,
                 "timestamp": "",
-                "type": "sent"
+                "type": "sent",
+                "platform": "instagram"
             })
             
             # Crear una respuesta simulada
             response = {
                 "recipient_id": sender,
-                "message_id": f"msg_{len(self.messages)}",
+                "message_id": f"ig_msg_{len(self.messages)}",
                 "message": response_text,
                 "status": "sent"
             }
             
             return response
-        
+            
         except Exception as e:
-            print(f"Error procesando mensaje: {e}")
+            print(f"Error procesando mensaje de Instagram: {e}")
             return {
-                "error": str(e),
-                "status": "failed"
+                "recipient_id": sender,
+                "message_id": "error",
+                "message": "Lo siento, ocurrió un error al procesar tu mensaje. Por favor, inténtalo de nuevo.",
+                "status": "error"
             }
     
-    def get_conversation_history(self, sender: str) -> list:
+    def get_conversation_history(self, sender_id: str) -> list:
         """
-        Obtiene el historial de conversación con un remitente específico
-        
-        Args:
-            sender: ID del remitente
-            
-        Returns:
-            Lista de mensajes intercambiados
+        Obtener el historial de conversación con un remitente específico
         """
-        # En una implementación real, esto consultaría una base de datos
-        return [msg for msg in self.messages if msg["sender"] == sender or msg["sender"] == "bot"]
-        
-    def __del__(self):
-        """Cerrar la sesión de la base de datos al destruir el objeto"""
-        if hasattr(self, 'db'):
-            self.db.close() 
+        return [msg for msg in self.messages if msg.get("sender") == sender_id or 
+               (msg.get("sender") == "bot" and msg.get("type") == "sent")] 
